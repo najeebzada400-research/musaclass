@@ -1,6 +1,6 @@
 {
-  "name": "Musa's Maths Grand Prix",
-  "short_name": "MusaClass",
+  "name": "Maths Grand Prix",
+  "short_name": "Grand Prix",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
