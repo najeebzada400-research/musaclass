@@ -264,7 +264,8 @@
 
   /* small drawings for the chapter 11 to 16 questions (viewBox about 300 wide, text 14px or more) */
   function svgTally(n) {
-    var s = '<svg viewBox="0 0 300 90" width="300" role="img" aria-label="Tally marks">', x = 14, five = Math.floor(n / 5), rest = n % 5;
+    var five = Math.floor(n / 5), rest = n % 5, W = Math.max(120, five * 58 + rest * 10 + 24), x = 14;
+    var s = '<svg viewBox="0 0 ' + W + ' 90" width="' + Math.round(W * 1.3) + '" role="img" aria-label="Tally marks">';
     for (var g = 0; g < five; g++) {
       for (var i = 0; i < 4; i++) s += '<line x1="' + (x + i * 10) + '" y1="20" x2="' + (x + i * 10) + '" y2="70" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
       s += '<line x1="' + (x - 6) + '" y1="62" x2="' + (x + 36) + '" y2="28" stroke="#D62839" stroke-width="4" stroke-linecap="round"/>';
@@ -275,7 +276,7 @@
   }
   function svgBar(labels, vals, step) {
     var max = Math.max.apply(null, vals), top = Math.ceil((max + step) / step) * step, H = 150, base = 175, left = 44;
-    var s = '<svg viewBox="0 0 300 210" width="300" role="img" aria-label="Bar chart">';
+    var s = '<svg viewBox="0 0 300 210" width="420" role="img" aria-label="Bar chart">';
     for (var v = 0; v <= top; v += step) {
       if (top / step > 10 && (v / step) % 2) continue;
       var y = base - v / top * H;
@@ -288,7 +289,7 @@
     return s + '<line x1="' + left + '" y1="' + base + '" x2="295" y2="' + base + '" stroke="#1B2440" stroke-width="2"/></svg>';
   }
   function svgPict(labels, counts, per) {
-    var s = '<svg viewBox="0 0 300 200" width="300" role="img" aria-label="Pictogram">';
+    var s = '<svg viewBox="0 0 300 200" width="420" role="img" aria-label="Pictogram">';
     labels.forEach(function (l, i) {
       var y = 26 + i * 38;
       s += '<text x="8" y="' + (y + 5) + '" font-size="15" fill="#1B2440">' + l + '</text>';
@@ -298,13 +299,13 @@
     return s + '<circle cx="80" cy="182" r="10" fill="#FFC43D" stroke="#B88400" stroke-width="1.5"/><text x="98" y="187" font-size="14" fill="#1B2440">= ' + per + ' cars</text></svg>';
   }
   function svgFrac(n, k) {
-    var w = 260 / n, s = '<svg viewBox="0 0 300 90" width="300" role="img" aria-label="A shape cut into equal parts">';
+    var w = 260 / n, s = '<svg viewBox="0 0 300 90" width="420" role="img" aria-label="A shape cut into equal parts">';
     for (var i = 0; i < n; i++) s += '<rect x="' + (20 + i * w) + '" y="15" width="' + w + '" height="60" fill="' + (i < k ? '#1F6FEB' : '#FFFFFF') + '" stroke="#1B2440" stroke-width="2"/>';
     return s + '</svg>';
   }
   function svgAngle(deg) {
     var cx = 90, cy = 150, L = 130, rad = deg * Math.PI / 180, x2 = cx + L * Math.cos(rad), y2 = cy - L * Math.sin(rad);
-    var s = '<svg viewBox="0 0 300 170" width="300" role="img" aria-label="An angle">';
+    var s = '<svg viewBox="0 0 300 170" width="420" role="img" aria-label="An angle">';
     s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + 180) + '" y2="' + cy + '" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
     s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
     if (deg === 90) s += '<path d="M' + (cx + 22) + ' ' + cy + ' V' + (cy - 22) + ' H' + cx + '" fill="none" stroke="#D62839" stroke-width="3"/>';
@@ -312,7 +313,7 @@
     return s + '</svg>';
   }
   function svgDotPlot(counts) {
-    var s = '<svg viewBox="0 0 300 190" width="300" role="img" aria-label="Dot plot">';
+    var s = '<svg viewBox="0 0 300 190" width="420" role="img" aria-label="Dot plot">';
     counts.forEach(function (c, i) {
       var x = 40 + i * 55;
       for (var k = 0; k < c; k++) s += '<circle cx="' + x + '" cy="' + (140 - k * 22) + '" r="8" fill="#1F6FEB"/>';
@@ -321,7 +322,7 @@
     return s + '<line x1="15" y1="155" x2="285" y2="155" stroke="#1B2440" stroke-width="2"/></svg>';
   }
   function svgNumLine(parts, at) {
-    var s = '<svg viewBox="0 0 300 100" width="300" role="img" aria-label="Number line from 0 to 1">';
+    var s = '<svg viewBox="0 0 300 100" width="420" role="img" aria-label="Number line from 0 to 1">';
     s += '<line x1="30" y1="60" x2="270" y2="60" stroke="#1B2440" stroke-width="3"/>';
     for (var i = 0; i <= parts; i++) { var x = 30 + i * 240 / parts; s += '<line x1="' + x + '" y1="50" x2="' + x + '" y2="70" stroke="#1B2440" stroke-width="2"/>'; }
     s += '<text x="30" y="92" font-size="15" text-anchor="middle" fill="#1B2440">0</text><text x="270" y="92" font-size="15" text-anchor="middle" fill="#1B2440">1</text>';
@@ -329,7 +330,7 @@
     return s + '<path d="M' + ax + ' 46 L' + (ax - 8) + ' 26 L' + (ax + 8) + ' 26 Z" fill="#D62839"/></svg>';
   }
   function svgCoord(px, py) {
-    var g = 36, ox = 40, oy = 220, s = '<svg viewBox="0 0 300 250" width="300" role="img" aria-label="A coordinate grid with a star">';
+    var g = 36, ox = 40, oy = 220, s = '<svg viewBox="0 0 300 250" width="420" role="img" aria-label="A coordinate grid with a star">';
     for (var i = 0; i <= 6; i++) {
       s += '<line x1="' + (ox + i * g) + '" y1="' + (oy - 6 * g + 6) + '" x2="' + (ox + i * g) + '" y2="' + oy + '" stroke="#D5DBE8" stroke-width="1.5"/>';
       s += '<text x="' + (ox + i * g) + '" y="' + (oy + 20) + '" font-size="14" text-anchor="middle" fill="#1B2440">' + i + '</text>';
