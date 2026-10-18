@@ -514,6 +514,14 @@
   function norm(s) { return String(s).replace(/\s/g, '').replace(/−/g, '-').replace(/,/g, '').replace(/^0+(?=\d)/, '').toLowerCase(); }
   function isRight(q, given) { return q.t === 'mc' ? given === q.a : norm(given) === norm(q.a); }
 
+  function scoreCheer(right, total) {
+    var p = total ? right / total : 0, nm = K().name;
+    if (p >= 0.9) return 'Top speed today, ' + nm + '!';
+    if (p >= 0.7) return 'Great driving, ' + nm + '!';
+    if (p >= 0.5) return 'Good race, ' + nm + '! Your car is getting faster.';
+    return 'Well done for finishing, ' + nm + '! Every race makes your car faster.';
+  }
+
   function renderFinish() {
     var f = lastFinish, d = doneMap(), more = -1, n = totalRaces();
     for (var b = 1; b < n; b++) if (!d[b]) { more = b; break; }
@@ -521,7 +529,7 @@
     var saveLine = saveState === 'saved' ? 'Saved for your pit crew' : (saveState === 'saving' ? 'Sending to your pit crew…' : 'Will send to your pit crew when the internet is back');
     var right = f.items.filter(function (i) { return i.ok; }).length, total = f.items.length;
     var showScore = plan.phase !== 'checkup';
-    h += '<p class="finish-sub">' + (showScore ? right + ' out of ' + total + ' laps were perfect.' : 'Brilliant driving, ' + K().name + '.') + '</p>';
+    h += '<p class="finish-sub"><b class="display" style="display:block;font-size:40px;color:#1B2440;margin-bottom:6px">' + right + ' out of ' + total + '</b>' + (showScore ? 'laps were perfect.' : esc(scoreCheer(right, total))) + '</p>';
     h += '<div class="road" style="margin:0;height:150px;background:#2D3550;border-radius:26px;overflow:hidden"><div class="dash" style="bottom:40px"></div><div style="position:absolute;top:0;bottom:0;right:120px;width:32px;background:repeating-conic-gradient(#FFFFFF 0 25%,#1B2440 0 50%) 0 0/16px 16px"></div><div style="position:absolute;right:70px;bottom:26px">' + car(190, true, isEssa() ? 'ESSA' : '') + '</div></div>';
     h += '<div class="prize"><div class="stars">' + star(58) + star(58) + star(58) + '</div><h2 class="display">You earned 3 stars!</h2>' +
       (plan.phase === 'checkup' ? '<p>Your pit crew is studying this race so they can tune your car for the next one.</p>' : '') + '<span class="saved">' + saveLine + '</span></div>';
@@ -681,7 +689,9 @@
     tryState = {};
     saveState = 'saving';
     sfx('fanfare');
-    setTimeout(function () { say(isEssa() ? 'You finished the race, Essa! Well done!' : 'Race finished! Great driving, Musa.'); }, 700);
+    var fr = pending.filter(function (i) { return i.ok; }).length, ft = pending.length;
+    var fline = plan.phase === 'checkup' ? 'Race finished! ' + fr + ' out of ' + ft + '. ' + scoreCheer(fr, ft) : (isEssa() ? 'You finished the race, Essa! Well done!' : 'Race finished! Great driving, Musa.');
+    setTimeout(function () { say(fline); }, 700);
     goView('finish');
     flushQueue().then(function () {
       saveState = 'saved';
