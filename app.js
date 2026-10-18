@@ -401,6 +401,7 @@
     if (v.type === 'blocks') return '<div class="visual">' + blocksHtml(v) + '</div>';
     if (v.type === 'shape') return '<div class="visual">' + shapeSvg(v.name) + '</div>';
     if (v.type === 'svg') return '<div class="visual">' + safeSvg(v.svg) + '</div>';
+    if (v.type === 'draw' && window.MusaGen && MusaGen.draw && MusaGen.draw[v.kind]) { try { return '<div class="visual">' + safeSvg(MusaGen.draw[v.kind].apply(null, v.args || [])) + '</div>'; } catch (e) { return ''; } }
     return '';
   }
 

@@ -139,7 +139,7 @@
     /* chapters 11 to 16 */
     tally: function (m) {
       var n = m.ri(7, 23), thing = m.pick(['red cars', 'birds', 'buses', 'footballs']);
-      return { ch: 11, lesson: 'A', t: 'num', q: 'The tally shows how many ' + thing + ' Musa counted. How many is that?', a: String(n), vis: { type: 'svg', svg: svgTally(n) } };
+      return { ch: 11, lesson: 'A', t: 'num', q: 'The tally shows how many ' + thing + ' Musa counted. How many is that?', a: String(n), vis: { type: 'draw', kind: 'tally', args: [n] } };
     },
     barchart: function (m) {
       var labels = m.shuffle(['Mango', 'Durian', 'Banana', 'Rambutan']), step = m.pick([1, 2, 5]);
@@ -154,7 +154,7 @@
         var top = vals.indexOf(Math.max.apply(null, vals));
         q = 'Which fruit is the most popular?'; t = 'mc'; a = labels[top]; o = m.shuffle(labels.slice());
       }
-      var out = { ch: 11, lesson: 'B', t: t, q: 'The bar chart shows the favourite fruit of a class. ' + q, a: a, vis: { type: 'svg', svg: svgBar(labels, vals, step) } };
+      var out = { ch: 11, lesson: 'B', t: t, q: 'The bar chart shows the favourite fruit of a class. ' + q, a: a, vis: { type: 'draw', kind: 'bar', args: [labels, vals, step] } };
       if (o) out.o = o;
       return out;
     },
@@ -163,7 +163,7 @@
       var counts = labels.map(function () { return m.ri(1, 5) + (per !== 10 && m.r() < 0.35 ? 0.5 : 0); });
       var i = m.ri(0, 3);
       return { ch: 11, lesson: 'B', t: 'num', q: 'The pictogram shows cars washed each day. Each circle stands for ' + per + ' cars. How many cars were washed on ' + { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday' }[labels[i]] + '?',
-        a: String(counts[i] * per), vis: { type: 'svg', svg: svgPict(labels, counts, per) } };
+        a: String(counts[i] * per), vis: { type: 'draw', kind: 'pict', args: [labels, counts, per] } };
     },
     venn: function (m) {
       var sets = m.pick([[3, 'multiples of 3', function (n) { return n % 3 === 0; }], [5, 'multiples of 5', function (n) { return n % 5 === 0; }], [4, 'multiples of 4', function (n) { return n % 4 === 0; }]]);
@@ -191,7 +191,7 @@
     fracshade: function (m) {
       var n = m.pick([3, 4, 5, 6, 8, 10]), k = m.ri(1, n - 1);
       var c = k + '/' + n;
-      return { ch: 13, lesson: 'B', t: 'mc', q: 'What fraction of the shape is shaded?', a: c, vis: { type: 'svg', svg: svgFrac(n, k) },
+      return { ch: 13, lesson: 'B', t: 'mc', q: 'What fraction of the shape is shaded?', a: c, vis: { type: 'draw', kind: 'frac', args: [n, k] },
         o: m.opts(c, [(n - k) + '/' + n, k + '/' + (n + 1), n + '/' + k, k + '/' + (n - k)].filter(function (x) { return x !== c && !/\/0$/.test(x); })) };
     },
     fraccmp: function (m) {
@@ -234,7 +234,7 @@
     angle: function (m) {
       var deg = m.pick([25, 40, 55, 70, 90, 90, 115, 130, 150, 165]);
       var kind = deg < 90 ? 'Acute (smaller than a right angle)' : deg === 90 ? 'A right angle' : 'Obtuse (bigger than a right angle)';
-      return { ch: 15, lesson: 'A', t: 'mc', q: 'What kind of angle is this?', a: kind, vis: { type: 'svg', svg: svgAngle(deg) },
+      return { ch: 15, lesson: 'A', t: 'mc', q: 'What kind of angle is this?', a: kind, vis: { type: 'draw', kind: 'angle', args: [deg] },
         o: ['Acute (smaller than a right angle)', 'A right angle', 'Obtuse (bigger than a right angle)', 'A straight line'] };
     },
     compass: function (m) {
@@ -247,7 +247,7 @@
       var x = m.ri(1, 6), y = m.ri(1, 5);
       if (x === y) x = x === 6 ? 5 : x + 1;
       var c = '(' + x + ', ' + y + ')';
-      return { ch: 15, lesson: 'C', t: 'mc', q: 'What are the coordinates of the star?', a: c, vis: { type: 'svg', svg: svgCoord(x, y) },
+      return { ch: 15, lesson: 'C', t: 'mc', q: 'What are the coordinates of the star?', a: c, vis: { type: 'draw', kind: 'coord', args: [x, y] },
         o: m.opts(c, ['(' + y + ', ' + x + ')', '(' + x + ', ' + (y + 1) + ')', '(' + (x - 1) + ', ' + y + ')']) };
     },
     prob: function (m) {
@@ -310,6 +310,23 @@
     if (deg === 90) s += '<path d="M' + (cx + 22) + ' ' + cy + ' V' + (cy - 22) + ' H' + cx + '" fill="none" stroke="#D62839" stroke-width="3"/>';
     else s += '<path d="M' + (cx + 44) + ' ' + cy + ' A44 44 0 0 0 ' + (cx + 44 * Math.cos(rad)).toFixed(1) + ' ' + (cy - 44 * Math.sin(rad)).toFixed(1) + '" fill="none" stroke="#D62839" stroke-width="3"/>';
     return s + '</svg>';
+  }
+  function svgDotPlot(counts) {
+    var s = '<svg viewBox="0 0 300 190" width="300" role="img" aria-label="Dot plot">';
+    counts.forEach(function (c, i) {
+      var x = 40 + i * 55;
+      for (var k = 0; k < c; k++) s += '<circle cx="' + x + '" cy="' + (140 - k * 22) + '" r="8" fill="#1F6FEB"/>';
+      s += '<text x="' + x + '" y="175" font-size="15" text-anchor="middle" fill="#1B2440">' + i + '</text>';
+    });
+    return s + '<line x1="15" y1="155" x2="285" y2="155" stroke="#1B2440" stroke-width="2"/></svg>';
+  }
+  function svgNumLine(parts, at) {
+    var s = '<svg viewBox="0 0 300 100" width="300" role="img" aria-label="Number line from 0 to 1">';
+    s += '<line x1="30" y1="60" x2="270" y2="60" stroke="#1B2440" stroke-width="3"/>';
+    for (var i = 0; i <= parts; i++) { var x = 30 + i * 240 / parts; s += '<line x1="' + x + '" y1="50" x2="' + x + '" y2="70" stroke="#1B2440" stroke-width="2"/>'; }
+    s += '<text x="30" y="92" font-size="15" text-anchor="middle" fill="#1B2440">0</text><text x="270" y="92" font-size="15" text-anchor="middle" fill="#1B2440">1</text>';
+    var ax = 30 + at * 240 / parts;
+    return s + '<path d="M' + ax + ' 46 L' + (ax - 8) + ' 26 L' + (ax + 8) + ' 26 Z" fill="#D62839"/></svg>';
   }
   function svgCoord(px, py) {
     var g = 36, ox = 40, oy = 220, s = '<svg viewBox="0 0 300 250" width="300" role="img" aria-label="A coordinate grid with a star">';
@@ -508,5 +525,6 @@
     return qs;
   }
 
-  root.MusaGen = { makeRace: makeRace, fmtN: fmtN, topics: { musa: Object.keys(MUSA), essa: Object.keys(ESSA) } };
+  root.MusaGen = { makeRace: makeRace, fmtN: fmtN,
+    draw: { tally: svgTally, bar: svgBar, pict: svgPict, frac: svgFrac, angle: svgAngle, coord: svgCoord, dots: svgDotPlot, line: svgNumLine }, topics: { musa: Object.keys(MUSA), essa: Object.keys(ESSA) } };
 })(typeof window !== 'undefined' ? window : globalThis);
