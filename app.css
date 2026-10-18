@@ -214,3 +214,13 @@ button:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }
   .stat { flex-direction: column; align-items: flex-start; gap: 4px; }
   .today { padding: 20px 18px 0; } .road { margin: 0 -18px; }
 }
+
+/* finish celebration */
+.finish-title { font-size: clamp(32px, 8vw, 62px); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.finish-title .wflag { width: clamp(30px, 7vw, 64px); height: auto; flex-shrink: 0; }
+.finish-title .wflag:last-child { transform: scaleX(-1); }
+.wflag .cloth { transform-origin: 12px 23px; animation: flagwave 0.5s ease-in-out infinite alternate; }
+@keyframes flagwave { from { transform: skewY(-6deg) scaleX(0.94); } to { transform: skewY(6deg) scaleX(1); } }
+.victory { animation: victory 0.55s cubic-bezier(.3,.7,.4,1) 4 alternate; }
+@keyframes victory { from { transform: translateY(0) rotate(0); } to { transform: translateY(-34px) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { .wflag .cloth, .victory { animation: none; } }

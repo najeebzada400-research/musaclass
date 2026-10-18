@@ -58,7 +58,7 @@
   ];
   var PICS = ['star', 'moon', 'sun', 'heart', 'tree', 'fish'];
   var CHEERS = {
-    essa: ['Yes! Vroom!', 'Super driving, Essa!', 'You got it!', 'Brilliant!', 'Zoom zoom! Well done!', 'That is right!', 'Fantastic, Essa!', 'Wow, great job!'],
+    essa: ['Yes! Vroom!', 'Super driving!', 'You got it!', 'Brilliant!', 'Zoom zoom! Well done!', 'That is right!', 'Fantastic!', 'Wow, great job!'],
     musa: ['Nice one!', 'Great driving!', 'Spot on!', 'Full speed!']
   };
   var NEARLY = ['Nearly! Try again.', 'Good try! Have another go.', 'Almost! Try again.'];
@@ -129,8 +129,86 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5);
     o.connect(f); f.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + 1.6);
   }
+  function noiseBuf(c, secs) {
+    var n = Math.floor(c.sampleRate * secs), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  }
+  /* starter motor, engine catches, then three big revs: vroom vroom vroom */
+  function engineStart() {
+    var c = ac(); if (!c) return;
+    var t = c.currentTime + 0.05, out = c.createGain();
+    out.gain.value = 0.9; out.connect(c.destination);
+    // starter motor: gated, band-passed noise plus a low growl
+    var ns = c.createBufferSource(); ns.buffer = noiseBuf(c, 0.8);
+    var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 320; bp.Q.value = 0.8;
+    var sg = c.createGain(); sg.gain.setValueAtTime(0, t);
+    for (var k = 0; k < 7; k++) {
+      var p = t + k * 0.095;
+      sg.gain.setValueAtTime(0.0001, p); sg.gain.exponentialRampToValueAtTime(1.6, p + 0.025); sg.gain.exponentialRampToValueAtTime(0.1, p + 0.085);
+    }
+    sg.gain.setValueAtTime(0, t + 0.7);
+    ns.connect(bp); bp.connect(sg); sg.connect(out); ns.start(t); ns.stop(t + 0.75);
+    // engine: two detuned saws and a sub square, pulsed by the firing rhythm
+    var e = t + 0.62;
+    var o1 = c.createOscillator(), o2 = c.createOscillator(), o3 = c.createOscillator();
+    o1.type = 'sawtooth'; o2.type = 'sawtooth'; o3.type = 'square';
+    var lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 4;
+    var am = c.createGain(), lfo = c.createOscillator(), lfoG = c.createGain();
+    lfo.type = 'square'; lfoG.gain.value = 0.35; am.gain.value = 0.65;
+    lfo.connect(lfoG); lfoG.connect(am.gain);
+    var vol = c.createGain();
+    var shaper = c.createWaveShaper(), curve = new Float32Array(512);
+    for (var s = 0; s < 512; s++) { var x = s / 256 - 1; curve[s] = Math.tanh(1.6 * x); }
+    shaper.curve = curve;
+    var mix = c.createGain(); mix.gain.value = 0.45;
+    o1.connect(mix); o2.connect(mix); o3.connect(mix); mix.connect(shaper); shaper.connect(lp); lp.connect(am); am.connect(vol); vol.connect(out);
+    // rpm curve: [time offset, base frequency]
+    var pts = [[0, 28], [0.2, 75], [0.45, 44], [0.6, 46], [0.95, 150], [1.35, 52], [1.5, 54], [1.85, 175], [2.25, 56], [2.4, 58], [2.8, 215], [3.4, 62], [3.9, 50]];
+    [[o1, 1], [o2, 1.012], [o3, 0.5], [lfo, 0.5]].forEach(function (pair) {
+      var f = pair[0].frequency; f.setValueAtTime(pts[0][1] * pair[1], e);
+      pts.slice(1).forEach(function (q) { f.exponentialRampToValueAtTime(q[1] * pair[1], e + q[0]); });
+    });
+    lp.frequency.setValueAtTime(300, e);
+    pts.slice(1).forEach(function (q) { lp.frequency.exponentialRampToValueAtTime(220 + q[1] * 11, e + q[0]); });
+    vol.gain.setValueAtTime(0.0001, e); vol.gain.exponentialRampToValueAtTime(0.5, e + 0.12);
+    pts.slice(1).forEach(function (q) { if (q[0] <= 3.4) vol.gain.exponentialRampToValueAtTime(0.32 + q[1] / 330, e + q[0]); });
+    vol.gain.exponentialRampToValueAtTime(0.0001, e + 4.1);
+    [o1, o2, o3, lfo].forEach(function (o) { o.start(e); o.stop(e + 4.2); });
+  }
+  /* cartoon crowd "hayyy!", an air horn and a whistle */
+  function crowdCheer() {
+    var c = ac(); if (!c) return;
+    var t = c.currentTime + 0.05, out = c.createGain();
+    out.gain.value = 1.3; out.connect(c.destination);
+    var ns = c.createBufferSource(); ns.buffer = noiseBuf(c, 3);
+    var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 0.6;
+    var ng = c.createGain();
+    ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.22, t + 0.35);
+    ng.gain.setValueAtTime(0.22, t + 1.4); ng.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
+    ns.connect(bp); bp.connect(ng); ng.connect(out); ns.start(t); ns.stop(t + 3);
+    // voices: saws through "ay" formants, each sliding up a little then down
+    var f1 = c.createBiquadFilter(), f2 = c.createBiquadFilter(), vg = c.createGain();
+    f1.type = 'bandpass'; f1.frequency.value = 650; f1.Q.value = 3;
+    f2.type = 'bandpass'; f2.frequency.value = 1900; f2.Q.value = 5;
+    f1.connect(vg); f2.connect(vg); vg.connect(out); vg.gain.value = 1.4;
+    for (var i = 0; i < 9; i++) {
+      var o = c.createOscillator(), g = c.createGain();
+      var st = t + Math.random() * 0.25, base = 190 + Math.random() * 230, len = 1.3 + Math.random() * 0.8;
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(base * 0.9, st);
+      o.frequency.exponentialRampToValueAtTime(base * 1.25, st + 0.25);
+      o.frequency.exponentialRampToValueAtTime(base * 0.8, st + len);
+      g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(0.05, st + 0.12);
+      g.gain.setValueAtTime(0.05, st + len * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, st + len);
+      o.connect(g); g.connect(f1); g.connect(f2); o.start(st); o.stop(st + len + 0.05);
+    }
+    [0.9, 1.45].forEach(function (h) { tone(440, h, 0.42, 'sawtooth', 0.07); tone(554, h, 0.42, 'sawtooth', 0.06); });
+    for (var w = 0; w < 6; w++) tone(w % 2 ? 2300 : 2700, 0.2 + w * 0.07, 0.07, 'sine', 0.05);
+  }
   var SFX = {
-    start: engine,
+    start: engineStart,
+    cheer: crowdCheer,
     whoosh: function () { tone(500, 0, 0.18, 'triangle', 0.08, 1400); },
     ding: function () { tone(988, 0, 0.18, 'sine', 0.22); tone(1319, 0.12, 0.35, 'sine', 0.22); },
     boop: function () { tone(330, 0, 0.18, 'sine', 0.16, 250); tone(262, 0.16, 0.28, 'sine', 0.14, 220); },
@@ -522,15 +600,53 @@
     return 'Well done for finishing, ' + nm + '! Every race makes your car faster.';
   }
 
+  /* confetti burst over the finish screen */
+  function celebrate() {
+    try {
+      var old = document.getElementById('confetti'); if (old) old.remove();
+      var cv = document.createElement('canvas'); cv.id = 'confetti';
+      cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50';
+      document.body.appendChild(cv);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), W = window.innerWidth, H = window.innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr;
+      var x = cv.getContext('2d'); x.scale(dpr, dpr);
+      var cols = ['#E63946', '#FFC43D', '#2BB673', '#3A86FF', '#FF7AB6', '#FFFFFF', '#1B2440'];
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var N = reduce ? 40 : 160, bits = [];
+      for (var i = 0; i < N; i++) {
+        var left = i % 2 === 0;
+        bits.push({ x: left ? -10 : W + 10, y: H * (0.55 + Math.random() * 0.3),
+          vx: (left ? 1 : -1) * (4 + Math.random() * 7), vy: -(9 + Math.random() * 9),
+          w: 7 + Math.random() * 7, h: 10 + Math.random() * 8, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+          c: cols[i % cols.length], d: Math.random() * 18 });
+      }
+      var t0 = performance.now();
+      (function frame(now) {
+        var el = now - t0; if (!document.getElementById('confetti')) return;
+        x.clearRect(0, 0, W, H);
+        x.globalAlpha = el > 3200 ? Math.max(0, 1 - (el - 3200) / 600) : 1;
+        bits.forEach(function (b) {
+          if (b.d > 0) { b.d--; return; }
+          b.vy += 0.32; b.vx *= 0.985; b.x += b.vx; b.y += b.vy; b.r += b.vr;
+          x.save(); x.translate(b.x, b.y); x.rotate(b.r); x.scale(1, Math.cos(b.r * 2));
+          x.fillStyle = b.c; x.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); x.restore();
+        });
+        if (el < 3800) requestAnimationFrame(frame); else cv.remove();
+      })(t0);
+    } catch (e) {}
+  }
+  var FLAG = '<svg class="wflag" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><rect x="8" y="6" width="4" height="54" rx="2" fill="#1B2440"/><g class="cloth"><rect x="12" y="8" width="44" height="30" fill="#FFFFFF" stroke="#1B2440" stroke-width="2"/>' +
+    [0, 1, 2].map(function (r) { return [0, 1, 2, 3].map(function (cc) { return (r + cc) % 2 ? '' : '<rect x="' + (12 + cc * 11) + '" y="' + (8 + r * 10) + '" width="11" height="10" fill="#1B2440"/>'; }).join(''); }).join('') + '</g></svg>';
+
   function renderFinish() {
     var f = lastFinish, d = doneMap(), more = -1, n = totalRaces();
     for (var b = 1; b < n; b++) if (!d[b]) { more = b; break; }
-    var h = '<div class="checker"></div><h1 class="display finish-title">Race finished!</h1>';
+    var h = '<div class="checker"></div><h1 class="display finish-title">' + FLAG + 'Race finished!' + FLAG + '</h1>';
     var saveLine = saveState === 'saved' ? 'Saved for your pit crew' : (saveState === 'saving' ? 'Sending to your pit crew…' : 'Will send to your pit crew when the internet is back');
     var right = f.items.filter(function (i) { return i.ok; }).length, total = f.items.length;
     var showScore = plan.phase !== 'checkup';
     h += '<p class="finish-sub"><b class="display" style="display:block;font-size:40px;color:#1B2440;margin-bottom:6px">' + right + ' out of ' + total + '</b>' + (showScore ? 'laps were perfect.' : esc(scoreCheer(right, total))) + '</p>';
-    h += '<div class="road" style="margin:0;height:150px;background:#2D3550;border-radius:26px;overflow:hidden"><div class="dash" style="bottom:40px"></div><div style="position:absolute;top:0;bottom:0;right:120px;width:32px;background:repeating-conic-gradient(#FFFFFF 0 25%,#1B2440 0 50%) 0 0/16px 16px"></div><div style="position:absolute;right:70px;bottom:26px">' + car(190, true, isEssa() ? 'ESSA' : '') + '</div></div>';
+    h += '<div class="road" style="margin:0;height:150px;background:#2D3550;border-radius:26px;overflow:hidden"><div class="dash" style="bottom:40px"></div><div style="position:absolute;top:0;bottom:0;right:120px;width:32px;background:repeating-conic-gradient(#FFFFFF 0 25%,#1B2440 0 50%) 0 0/16px 16px"></div><div class="victory" style="position:absolute;right:70px;bottom:26px">' + car(190, true, K().name.toUpperCase()) + '</div></div>';
     h += '<div class="prize"><div class="stars">' + star(58) + star(58) + star(58) + '</div><h2 class="display">You earned 3 stars!</h2>' +
       (plan.phase === 'checkup' ? '<p>Your pit crew is studying this race so they can tune your car for the next one.</p>' : '') + '<span class="saved">' + saveLine + '</span></div>';
     if (showScore && !isEssa()) {
@@ -619,8 +735,8 @@
   function startRace(n) {
     if (play && play.locked && play.locked_until > Date.now()) { goView('pit'); return; }
     race = n; raceObj = buildRace(n); qi = 0; answer = ''; pending = []; tries = 0; fbState = ''; qStart = Date.now();
+    try { window.speechSynthesis.cancel(); } catch (e) {}
     sfx('start');
-    if (n === 0 || n >= 100) setTimeout(function () { say(isEssa() ? 'Ready, steady, go!' : 'Three, two, one, go!'); }, 900);
     goView('race');
   }
   function startKeep() {
@@ -688,11 +804,10 @@
     lastFinish = { race: race, items: pending.slice() };
     tryState = {};
     saveState = 'saving';
-    sfx('fanfare');
-    var fr = pending.filter(function (i) { return i.ok; }).length, ft = pending.length;
-    var fline = plan.phase === 'checkup' ? 'Race finished! ' + fr + ' out of ' + ft + '. ' + scoreCheer(fr, ft) : (isEssa() ? 'You finished the race, Essa! Well done!' : 'Race finished! Great driving, Musa.');
-    setTimeout(function () { say(fline); }, 700);
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    sfx('cheer');
     goView('finish');
+    celebrate();
     flushQueue().then(function () {
       saveState = 'saved';
       if (play && play.locked && play.locked_until > Date.now()) { showPit(); return; }
@@ -791,7 +906,6 @@
       if (res && res.ok && res.match) {
         L.pics[child] = hashPic(child, p); save();
         unlocked[child] = true; lockMsg = 'good'; render(); sfx('ding');
-        setTimeout(function () { say('Hi ' + K().name + '! Let’s race!'); }, 200);
         setTimeout(function () { if (play && play.locked && play.locked_until > Date.now()) goView('pit'); else goView('home'); }, 700);
       } else if (res && res.ok && res.needs_setup) {
         goView('setpic');
@@ -807,7 +921,6 @@
     apiPost({ action: 'login', child: child, pic: p, set: true }).then(function (res) {
       if (res && res.ok && res.match) {
         L.pics[child] = hashPic(child, p); save(); unlocked[child] = true; sfx('fanfare');
-        setTimeout(function () { say('Your secret picture is saved, ' + K().name + '!'); }, 300);
         goView('home');
       } else { setPick = ''; render(); }
     }).catch(function () { lockMsg = 'offline'; render(); });
