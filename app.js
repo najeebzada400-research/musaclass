@@ -176,36 +176,18 @@
     vol.gain.exponentialRampToValueAtTime(0.0001, e + 4.1);
     [o1, o2, o3, lfo].forEach(function (o) { o.start(e); o.stop(e + 4.2); });
   }
-  /* cartoon crowd "hayyy!", an air horn and a whistle */
+  /* real crowd cheer recording (BigSoundBank, CC0) */
+  var cheerAudio = null;
+  try { cheerAudio = new Audio('sounds/cheer.mp3?v=5'); cheerAudio.preload = 'auto'; } catch (e) {}
   function crowdCheer() {
-    var c = ac(); if (!c) return;
-    var t = c.currentTime + 0.05, out = c.createGain();
-    out.gain.value = 1.3; out.connect(c.destination);
-    var ns = c.createBufferSource(); ns.buffer = noiseBuf(c, 3);
-    var bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 0.6;
-    var ng = c.createGain();
-    ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.22, t + 0.35);
-    ng.gain.setValueAtTime(0.22, t + 1.4); ng.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
-    ns.connect(bp); bp.connect(ng); ng.connect(out); ns.start(t); ns.stop(t + 3);
-    // voices: saws through "ay" formants, each sliding up a little then down
-    var f1 = c.createBiquadFilter(), f2 = c.createBiquadFilter(), vg = c.createGain();
-    f1.type = 'bandpass'; f1.frequency.value = 650; f1.Q.value = 3;
-    f2.type = 'bandpass'; f2.frequency.value = 1900; f2.Q.value = 5;
-    f1.connect(vg); f2.connect(vg); vg.connect(out); vg.gain.value = 1.4;
-    for (var i = 0; i < 9; i++) {
-      var o = c.createOscillator(), g = c.createGain();
-      var st = t + Math.random() * 0.25, base = 190 + Math.random() * 230, len = 1.3 + Math.random() * 0.8;
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(base * 0.9, st);
-      o.frequency.exponentialRampToValueAtTime(base * 1.25, st + 0.25);
-      o.frequency.exponentialRampToValueAtTime(base * 0.8, st + len);
-      g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(0.05, st + 0.12);
-      g.gain.setValueAtTime(0.05, st + len * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, st + len);
-      o.connect(g); g.connect(f1); g.connect(f2); o.start(st); o.stop(st + len + 0.05);
-    }
-    [0.9, 1.45].forEach(function (h) { tone(440, h, 0.42, 'sawtooth', 0.07); tone(554, h, 0.42, 'sawtooth', 0.06); });
-    for (var w = 0; w < 6; w++) tone(w % 2 ? 2300 : 2700, 0.2 + w * 0.07, 0.07, 'sine', 0.05);
+    if (L.mute) return;
+    if (!cheerAudio) { SFX.fanfare(); return; }
+    try {
+      cheerAudio.currentTime = 0; cheerAudio.volume = 1;
+      var p = cheerAudio.play(); if (p && p.catch) p.catch(function () { SFX.fanfare(); });
+    } catch (e) { SFX.fanfare(); }
   }
+  function stopCheer() { try { if (cheerAudio) cheerAudio.pause(); } catch (e) {} }
   var SFX = {
     start: engineStart,
     cheer: crowdCheer,
@@ -736,6 +718,7 @@
     if (play && play.locked && play.locked_until > Date.now()) { goView('pit'); return; }
     race = n; raceObj = buildRace(n); qi = 0; answer = ''; pending = []; tries = 0; fbState = ''; qStart = Date.now();
     try { window.speechSynthesis.cancel(); } catch (e) {}
+    stopCheer();
     sfx('start');
     goView('race');
   }
@@ -961,7 +944,7 @@
     else if (g === 'advance') advance();
     else if (g === 'retry') { answer = ''; fbState = ''; render(); }
     else if (g === 'say') say(speakable(raceObj.questions[qi]), isEssa());
-    else if (g === 'mute') { L.mute = !L.mute; save(); if (L.mute) { try { window.speechSynthesis.cancel(); } catch (x) {} } render(); }
+    else if (g === 'mute') { L.mute = !L.mute; save(); if (L.mute) { try { window.speechSynthesis.cancel(); } catch (x) {} stopCheer(); } render(); }
     else if (g === 'keep') startKeep();
     else if (g === 'reload') { if (child) chooseDriver(child); else goView('picker'); }
     else if (g === 'studied') {
