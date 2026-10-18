@@ -834,10 +834,13 @@
     });
   }
   setInterval(tick, 60000);
+  var pitChecks = 0;
   setInterval(function () {
     if (view !== 'pit' || !play) return;
-    if (play.locked_until && play.locked_until <= Date.now()) { play.locked = false; openGarage(); }
-    else render();
+    if (play.locked_until && play.locked_until <= Date.now()) { play.locked = false; openGarage(); return; }
+    // every minute, ask the pit crew whether Dad has opened the garage
+    if (!document.hidden && (++pitChecks % 2 === 0)) { openGarage(true); return; }
+    render();
   }, 30000);
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && child && (view === 'pit' || view === 'home')) openGarage(true);
