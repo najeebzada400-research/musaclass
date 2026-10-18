@@ -264,6 +264,7 @@
   function car(w, dark, name, forChild) {
     var who = forChild || child;
     if (who === 'musa') return silverCar(w, dark, name, who);
+    if (who === 'essa') return orangeSuv(w, dark, name, who);
     var tyre = dark ? '#0B1226' : '#1B2440';
     var paint = (who === child && L.paint[child] === 'blue' && has('blue')) ? '#1F6FEB' : '#D62839';
     var mine = who === child;
@@ -279,6 +280,27 @@
     else s += '<circle cx="40" cy="30" r="6" fill="#FFFFFF"/>';
     s += '<circle cx="30" cy="42" r="10" fill="' + tyre + '"/><circle cx="30" cy="42" r="' + hubR + '" fill="' + hub + '"/>' +
       '<circle cx="94" cy="42" r="10" fill="' + tyre + '"/><circle cx="94" cy="42" r="' + hubR + '" fill="' + hub + '"/></svg>';
+    return s;
+  }
+  /* Essa's car: an original orange sporty SUV (no real make, badge or light design) */
+  function orangeSuv(w, dark, name, who) {
+    var tyre = dark ? '#0B1226' : '#1B2440';
+    var mine = who === child;
+    var blue = mine && L.paint[child] === 'blue' && has('blue');
+    var paint = blue ? '#1F6FEB' : '#FF7A1A', shade = blue ? '#1452B5' : '#D95F08', trim = '#2A2F3A';
+    var gold = mine && has('gold'), spoiler = mine && has('spoiler'), stripes = mine && has('stripes');
+    var hub = gold ? '#FFD84D' : '#5B6270', hubR = gold ? 6 : 5;
+    var s = '<svg viewBox="0 0 120 56" width="' + w + '" height="' + Math.round(w * 0.467) + '" aria-hidden="true" class="car">';
+    if (spoiler) s += '<rect x="0" y="12" width="22" height="5" rx="2" fill="' + tyre + '"/><rect x="8" y="16" width="4" height="12" fill="' + tyre + '"/>';
+    s += '<path d="M4 41 L5 30 C6 27 9 26 14 25 L28 22 C37 15 46 11 56 10.5 L82 11 C88 11.5 92 14 95 18 L100 24 L112 27 C116 28 118 31 118 35 L118 41 Z" fill="' + paint + '" stroke="' + shade + '" stroke-width="1.2" stroke-linejoin="round"/>';
+    s += '<path d="M34 23 C40 17.5 46 14.5 54 14 L62 14 L62 23 Z" fill="#BFE3FF"/><path d="M65 14 L82 14 C86 14 89 15.5 91 18 L94.5 23 L65 23 Z" fill="#BFE3FF"/><path d="M14 30 L112 30" stroke="' + shade + '" stroke-width="1.2"/>';
+    s += '<path d="M4 36 L118 36 L118 41 L4 41 Z" fill="' + trim + '"/>';
+    if (stripes) s += '<path d="M8 32 L114 32 L114 34 L8 34 Z" fill="#FFFFFF"/>';
+    s += '<path d="M107 29.5 L116 31.5 L116 33 L106 31.5 Z" fill="#FFF4D6"/><path d="M4.5 29 L9 28.5 L9 31 L4.5 31.5 Z" fill="#D62839"/>';
+    s += '<path d="M14 41 L14 38 A14 13 0 0 1 42 38 L42 41 Z" fill="' + trim + '"/><path d="M80 41 L80 38 A14 13 0 0 1 108 38 L108 41 Z" fill="' + trim + '"/>';
+    if (name) s += '<text x="62" y="29" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="9" fill="#FFFFFF" letter-spacing="0.6">' + esc(name) + '</text>';
+    s += '<circle cx="28" cy="42.5" r="11.5" fill="' + tyre + '"/><circle cx="28" cy="42.5" r="' + (hubR + 1) + '" fill="' + hub + '"/>' +
+      '<circle cx="94" cy="42.5" r="11.5" fill="' + tyre + '"/><circle cx="94" cy="42.5" r="' + (hubR + 1) + '" fill="' + hub + '"/></svg>';
     return s;
   }
   /* Musa's car: an original long, low silver endurance racer (no real make, badge or number) */
