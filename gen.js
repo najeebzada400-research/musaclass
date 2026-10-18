@@ -45,7 +45,8 @@
         o: m.opts(fmtN(value), [fmtN(d), fmtN(d * 10), fmtN(d * 100), fmtN(d * 1000), fmtN(d * 10000)].filter(function (x) { return x !== fmtN(value); })) };
     },
     round: function (m) {
-      var n = m.ri(1000, 99999); var to = m.pick([10, 100, 1000]);
+      var to = m.pick([10, 100, 1000]), n;
+      do { n = m.ri(1000, 99999); } while (n % to === 0);
       var a = Math.floor(n / to + 0.5) * to;
       return { ch: 1, lesson: 'E', t: 'num', q: 'Round ' + fmtN(n) + ' to the nearest ' + fmtN(to) + '.', a: String(a) };
     },
@@ -250,9 +251,11 @@
         o: m.opts(c, ['(' + y + ', ' + x + ')', '(' + x + ', ' + (y + 1) + ')', '(' + (x - 1) + ', ' + y + ')']) };
     },
     prob: function (m) {
-      var r = m.ri(0, 10), b = m.ri(0, 10);
-      if (r + b === 0) r = 3;
-      var colour = m.pick(['red', 'blue']), want = colour === 'red' ? r : b, total = r + b;
+      var r, b, colour, want, total, f;
+      do {
+        r = m.ri(0, 10); b = m.ri(0, 10); colour = m.pick(['red', 'blue']);
+        want = colour === 'red' ? r : b; total = r + b; f = total ? want / total : 0;
+      } while (!total || (f > 0 && f < 1 && f !== 0.5 && f > 0.3 && f < 0.7));
       var c = want === total ? 'Certain' : want === 0 ? 'Impossible' : want * 2 > total ? 'Likely' : want * 2 < total ? 'Unlikely' : 'Even chance';
       return { ch: 16, lesson: 'A', t: 'mc', q: 'A bag has ' + r + ' red balls and ' + b + ' blue balls. Musa takes one without looking. How likely is it to be ' + colour + '?', a: c,
         o: c === 'Even chance' ? ['Impossible', 'Unlikely', 'Even chance', 'Likely'] : ['Impossible', 'Unlikely', 'Likely', 'Certain'] };
