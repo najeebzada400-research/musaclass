@@ -263,6 +263,7 @@
   /* ---------- drawings ---------- */
   function car(w, dark, name, forChild) {
     var who = forChild || child;
+    if (who === 'musa') return silverCar(w, dark, name, who);
     var tyre = dark ? '#0B1226' : '#1B2440';
     var paint = (who === child && L.paint[child] === 'blue' && has('blue')) ? '#1F6FEB' : '#D62839';
     var mine = who === child;
@@ -278,6 +279,30 @@
     else s += '<circle cx="40" cy="30" r="6" fill="#FFFFFF"/>';
     s += '<circle cx="30" cy="42" r="10" fill="' + tyre + '"/><circle cx="30" cy="42" r="' + hubR + '" fill="' + hub + '"/>' +
       '<circle cx="94" cy="42" r="10" fill="' + tyre + '"/><circle cx="94" cy="42" r="' + hubR + '" fill="' + hub + '"/></svg>';
+    return s;
+  }
+  /* Musa's car: an original long, low silver endurance racer (no real make, badge or number) */
+  function silverCar(w, dark, name, who) {
+    var tyre = dark ? '#0B1226' : '#1B2440';
+    var mine = who === child;
+    var blue = mine && L.paint[child] === 'blue' && has('blue');
+    var paint = blue ? '#1F6FEB' : '#C9CFD8', shade = blue ? '#1452B5' : '#8C95A3', hi = blue ? '#5B97F5' : '#EEF1F5';
+    var gold = mine && has('gold'), spoiler = mine && has('spoiler'), stripes = mine && has('stripes');
+    var hub = gold ? '#FFD84D' : '#D7DCE3', hubR = gold ? 6 : 5;
+    var s = '<svg viewBox="0 0 120 56" width="' + w + '" height="' + Math.round(w * 0.467) + '" aria-hidden="true" class="car">';
+    s += spoiler ? '<rect x="1" y="9" width="24" height="5" rx="2" fill="' + tyre + '"/><rect x="9" y="13" width="4" height="17" fill="' + tyre + '"/>'
+      : '<rect x="2" y="15" width="18" height="4" rx="2" fill="' + tyre + '"/><rect x="9" y="18" width="4" height="12" fill="' + tyre + '"/>';
+    s += '<path d="M2 41 L3 31 C12 29 30 28 46 26 C52 18 60 15 69 15 C78 15 84 19 88 24 C98 26 108 29 113 32 C117 34 119 37 119 41 Z" fill="' + paint + '" stroke="' + shade + '" stroke-width="1.2" stroke-linejoin="round"/>';
+    s += '<path d="M32 33.5 L43 32 L43 35.5 L32 36 Z" fill="' + tyre + '" opacity="0.75"/><path d="M104 40.5 L119 40.5 L119 42 L102 42 Z" fill="' + tyre + '"/>';
+    s += '<path d="M46 26 C52 18 60 15 69 15 C78 15 84 19 88 24 C80 22 60 22 46 26 Z" fill="' + hi + '"/>';
+    s += '<path d="M56 24 C59 19 64 17 69 17 C75 17 79 19 82 23 C74 22 64 22 56 24 Z" fill="#BFE3FF"/>';
+    s += '<path d="M4 37 L117 37" stroke="' + shade + '" stroke-width="1.6"/>';
+    if (stripes) s += '<path d="M3 39 L118 39 L118 41 L2 41 Z" fill="#D62839"/>';
+    s += '<ellipse cx="113" cy="34" rx="3" ry="1.6" fill="#FFE9A8"/>';
+    s += '<path d="M17 41 A11 11 0 0 1 39 41 Z" fill="' + shade + '"/><path d="M83 41 A11 11 0 0 1 105 41 Z" fill="' + shade + '"/>';
+    if (name) s += '<text x="66" y="34" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="9" fill="' + (blue ? '#FFFFFF' : '#1B2440') + '" letter-spacing="0.6">' + esc(name) + '</text>';
+    s += '<circle cx="28" cy="43" r="9.5" fill="' + tyre + '"/><circle cx="28" cy="43" r="' + hubR + '" fill="' + hub + '"/>' +
+      '<circle cx="94" cy="43" r="9.5" fill="' + tyre + '"/><circle cx="94" cy="43" r="' + hubR + '" fill="' + hub + '"/></svg>';
     return s;
   }
   function star(size) {

@@ -133,8 +133,196 @@
       var wrong = [];
       while (wrong.length < 3) { var x = c + m.ri(-8, 12); if (x > 1 && Math.sqrt(x) % 1 !== 0 && wrong.indexOf(x) < 0) wrong.push(x); }
       return { ch: 10, lesson: 'B', t: 'mc', q: 'Which of these is a square number?', a: String(c), o: m.opts(c, wrong) };
+    },
+
+    /* chapters 11 to 16 */
+    tally: function (m) {
+      var n = m.ri(7, 23), thing = m.pick(['red cars', 'birds', 'buses', 'footballs']);
+      return { ch: 11, lesson: 'A', t: 'num', q: 'The tally shows how many ' + thing + ' Musa counted. How many is that?', a: String(n), vis: { type: 'svg', svg: svgTally(n) } };
+    },
+    barchart: function (m) {
+      var labels = m.shuffle(['Mango', 'Durian', 'Banana', 'Rambutan']), step = m.pick([1, 2, 5]);
+      var vals = [];
+      while (vals.length < 4) { var v = m.ri(1, 8) * step; if (vals.indexOf(v) < 0) vals.push(v); }
+      var k = m.ri(0, 2), q, a, t = 'num', o;
+      if (k === 0) { var i = m.ri(0, 3); q = 'How many children chose ' + labels[i] + '?'; a = String(vals[i]); }
+      else if (k === 1) {
+        var x = m.ri(0, 3), y = (x + m.ri(1, 3)) % 4, hi = vals[x] > vals[y] ? x : y, lo = hi === x ? y : x;
+        q = 'How many more children chose ' + labels[hi] + ' than ' + labels[lo] + '?'; a = String(vals[hi] - vals[lo]);
+      } else {
+        var top = vals.indexOf(Math.max.apply(null, vals));
+        q = 'Which fruit is the most popular?'; t = 'mc'; a = labels[top]; o = m.shuffle(labels.slice());
+      }
+      var out = { ch: 11, lesson: 'B', t: t, q: 'The bar chart shows the favourite fruit of a class. ' + q, a: a, vis: { type: 'svg', svg: svgBar(labels, vals, step) } };
+      if (o) out.o = o;
+      return out;
+    },
+    pictogram: function (m) {
+      var per = m.pick([2, 4, 10]), labels = ['Mon', 'Tue', 'Wed', 'Thu'];
+      var counts = labels.map(function () { return m.ri(1, 5) + (per !== 10 && m.r() < 0.35 ? 0.5 : 0); });
+      var i = m.ri(0, 3);
+      return { ch: 11, lesson: 'B', t: 'num', q: 'The pictogram shows cars washed each day. Each circle stands for ' + per + ' cars. How many cars were washed on ' + { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday' }[labels[i]] + '?',
+        a: String(counts[i] * per), vis: { type: 'svg', svg: svgPict(labels, counts, per) } };
+    },
+    venn: function (m) {
+      var sets = m.pick([[3, 'multiples of 3', function (n) { return n % 3 === 0; }], [5, 'multiples of 5', function (n) { return n % 5 === 0; }], [4, 'multiples of 4', function (n) { return n % 4 === 0; }]]);
+      var other = m.pick([['odd numbers', function (n) { return n % 2 === 1; }], ['even numbers', function (n) { return n % 2 === 0; }], ['numbers bigger than 20', function (n) { return n > 20; }]]);
+      var n = m.ri(2, 40), A = sets[2](n), B = other[1](n);
+      var opts = ['Only in "' + sets[1] + '"', 'Only in "' + other[0] + '"', 'In the middle (both)', 'Outside both circles'];
+      var a = A && B ? opts[2] : A ? opts[0] : B ? opts[1] : opts[3];
+      return { ch: 11, lesson: 'D', t: 'mc', q: 'A Venn diagram has two circles: "' + sets[1] + '" and "' + other[0] + '". Where does ' + n + ' go?', a: a, o: opts };
+    },
+    mode: function (m) {
+      var pool = m.shuffle([2, 3, 4, 5, 6, 7, 8, 9]), modeV = pool[0], list = [modeV, modeV, modeV, pool[1], pool[1], pool[2], pool[3]];
+      return { ch: 12, lesson: 'C', t: 'num', q: 'Goals scored in 7 football matches: ' + m.shuffle(list).join(', ') + '. Which number of goals happened most often?', a: String(modeV) };
+    },
+    statcycle: function (m) {
+      var bank = [
+        ['Aisyah wants to find out the favourite drink in her class. What should she do first?', 'Write the question she wants to answer', ['Draw a bar chart', 'Say which drink won', 'Colour the chart']],
+        ['Musa asks 20 friends their favourite sport and makes tally marks. Which step of the cycle is this?', 'Collecting the data', ['Planning the question', 'Drawing a conclusion', 'Checking the answer is right']],
+        ['A class wants to know how pupils come to school. Which question is best to ask?', 'How do you usually come to school?', ['Do you like school?', 'What is your name?', 'How old are you?']],
+        ['The bar chart shows Football is the tallest bar. What can the class say?', 'Football is the most popular sport', ['Nobody likes the other sports', 'Football is the hardest sport', 'Everyone plays football']],
+        ['Which is the best way to record answers while you ask people?', 'A tally chart', ['A shopping list', 'A clock', 'A map']]
+      ];
+      var b = m.pick(bank);
+      return { ch: 12, lesson: m.pick(['A', 'B', 'C']), t: 'mc', q: b[0], a: b[1], o: m.opts(b[1], b[2]) };
+    },
+    fracshade: function (m) {
+      var n = m.pick([3, 4, 5, 6, 8, 10]), k = m.ri(1, n - 1);
+      var c = k + '/' + n;
+      return { ch: 13, lesson: 'B', t: 'mc', q: 'What fraction of the shape is shaded?', a: c, vis: { type: 'svg', svg: svgFrac(n, k) },
+        o: m.opts(c, [(n - k) + '/' + n, k + '/' + (n + 1), n + '/' + k, k + '/' + (n - k)].filter(function (x) { return x !== c && !/\/0$/.test(x); })) };
+    },
+    fraccmp: function (m) {
+      if (m.r() < 0.5) {
+        var a = m.ri(2, 6), b = m.ri(7, 12);
+        return { ch: 13, lesson: 'A', t: 'mc', q: 'Which fraction is bigger: 1/' + a + ' or 1/' + b + '?', a: '1/' + a, o: ['1/' + a, '1/' + b, 'They are the same'] };
+      }
+      var d = m.pick([5, 6, 8, 10]), x = m.ri(1, d - 2), y = m.ri(x + 1, d - 1);
+      var o = m.shuffle([x + '/' + d, y + '/' + d]);
+      return { ch: 13, lesson: 'E', t: 'mc', q: 'Which fraction is bigger: ' + o[0] + ' or ' + o[1] + '?', a: y + '/' + d, o: o.concat(['They are the same']) };
+    },
+    fracequiv: function (m) {
+      var base = m.pick([[1, 2], [1, 3], [1, 4], [2, 3], [3, 4], [1, 5]]), k = m.ri(2, 5);
+      var c = (base[0] * k) + '/' + (base[1] * k);
+      var wrongs = [(base[0] * k) + '/' + (base[1] * k + 1), (base[0] + k) + '/' + (base[1] + k), (base[0] * k + 1) + '/' + (base[1] * k), base[1] + '/' + (base[0] * k + base[1])];
+      return { ch: 13, lesson: 'C', t: 'mc', q: 'Which fraction is equal to ' + base[0] + '/' + base[1] + '?', a: c, o: m.opts(c, wrongs) };
+    },
+    percent: function (m) {
+      var k = m.ri(0, 1);
+      if (k === 0) {
+        var p = m.pick([[50, '1/2'], [25, '1/4'], [10, '1/10'], [75, '3/4']]);
+        return { ch: 13, lesson: 'F', t: 'mc', q: 'Which fraction is the same as ' + p[0] + '%?', a: p[1], o: m.opts(p[1], ['1/2', '1/4', '1/10', '3/4', '1/5'].filter(function (x) { return x !== p[1]; }).slice(0, 3)) };
+      }
+      var pc = m.pick([50, 25, 10]), n = (pc === 25 ? 4 : pc === 10 ? 10 : 2) * m.ri(2, 12);
+      return { ch: 13, lesson: 'F', t: 'num', q: 'What is ' + pc + '% of ' + n + '?', a: String(n * pc / 100) };
+    },
+    fracof: function (m) {
+      var d = m.ri(2, 10), n = d * m.ri(2, 10);
+      return { ch: 14, lesson: 'A', t: 'num', q: 'What is 1/' + d + ' of ' + n + '?', a: String(n / d) };
+    },
+    fracadd: function (m) {
+      var d = m.pick([5, 6, 7, 8, 9, 10]), a = m.ri(1, d - 2), b = m.ri(1, d - 1 - a), add = m.r() < 0.5;
+      if (add) {
+        var c = (a + b) + '/' + d;
+        return { ch: 14, lesson: 'B', t: 'mc', q: a + '/' + d + ' + ' + b + '/' + d + ' = ?', a: c, o: m.opts(c, [(a + b) + '/' + (2 * d), (a + b + 1) + '/' + d, (a * b) + '/' + d]) };
+      }
+      var big = a + b, s = a + '/' + d;
+      return { ch: 14, lesson: 'C', t: 'mc', q: big + '/' + d + ' ' + MINUS + ' ' + b + '/' + d + ' = ?', a: s, o: m.opts(s, [(big + b) + '/' + d, (a + 1) + '/' + d, a + '/' + (2 * d)]) };
+    },
+    angle: function (m) {
+      var deg = m.pick([25, 40, 55, 70, 90, 90, 115, 130, 150, 165]);
+      var kind = deg < 90 ? 'Acute (smaller than a right angle)' : deg === 90 ? 'A right angle' : 'Obtuse (bigger than a right angle)';
+      return { ch: 15, lesson: 'A', t: 'mc', q: 'What kind of angle is this?', a: kind, vis: { type: 'svg', svg: svgAngle(deg) },
+        o: ['Acute (smaller than a right angle)', 'A right angle', 'Obtuse (bigger than a right angle)', 'A straight line'] };
+    },
+    compass: function (m) {
+      var dirs = ['north', 'east', 'south', 'west'], s = m.ri(0, 3), turn = m.pick([[1, 'a quarter turn clockwise'], [3, 'a quarter turn anticlockwise'], [2, 'a half turn'], [3, 'three quarter turns clockwise']]);
+      var c = dirs[(s + turn[0]) % 4];
+      return { ch: 15, lesson: 'B', t: 'mc', q: 'Musa faces ' + dirs[s] + '. He makes ' + turn[1] + '. Which way does he face now?', a: 'He faces ' + c,
+        o: dirs.map(function (d) { return 'He faces ' + d; }) };
+    },
+    coord: function (m) {
+      var x = m.ri(1, 6), y = m.ri(1, 5);
+      if (x === y) x = x === 6 ? 5 : x + 1;
+      var c = '(' + x + ', ' + y + ')';
+      return { ch: 15, lesson: 'C', t: 'mc', q: 'What are the coordinates of the star?', a: c, vis: { type: 'svg', svg: svgCoord(x, y) },
+        o: m.opts(c, ['(' + y + ', ' + x + ')', '(' + x + ', ' + (y + 1) + ')', '(' + (x - 1) + ', ' + y + ')']) };
+    },
+    prob: function (m) {
+      var r = m.ri(0, 10), b = m.ri(0, 10);
+      if (r + b === 0) r = 3;
+      var colour = m.pick(['red', 'blue']), want = colour === 'red' ? r : b, total = r + b;
+      var c = want === total ? 'Certain' : want === 0 ? 'Impossible' : want * 2 > total ? 'Likely' : want * 2 < total ? 'Unlikely' : 'Even chance';
+      return { ch: 16, lesson: 'A', t: 'mc', q: 'A bag has ' + r + ' red balls and ' + b + ' blue balls. Musa takes one without looking. How likely is it to be ' + colour + '?', a: c,
+        o: c === 'Even chance' ? ['Impossible', 'Unlikely', 'Even chance', 'Likely'] : ['Impossible', 'Unlikely', 'Likely', 'Certain'] };
     }
   };
+
+  /* small drawings for the chapter 11 to 16 questions (viewBox about 300 wide, text 14px or more) */
+  function svgTally(n) {
+    var s = '<svg viewBox="0 0 300 90" width="300" role="img" aria-label="Tally marks">', x = 14, five = Math.floor(n / 5), rest = n % 5;
+    for (var g = 0; g < five; g++) {
+      for (var i = 0; i < 4; i++) s += '<line x1="' + (x + i * 10) + '" y1="20" x2="' + (x + i * 10) + '" y2="70" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
+      s += '<line x1="' + (x - 6) + '" y1="62" x2="' + (x + 36) + '" y2="28" stroke="#D62839" stroke-width="4" stroke-linecap="round"/>';
+      x += 58;
+    }
+    for (var j = 0; j < rest; j++) s += '<line x1="' + (x + j * 10) + '" y1="20" x2="' + (x + j * 10) + '" y2="70" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
+    return s + '</svg>';
+  }
+  function svgBar(labels, vals, step) {
+    var max = Math.max.apply(null, vals), top = Math.ceil((max + step) / step) * step, H = 150, base = 175, left = 44;
+    var s = '<svg viewBox="0 0 300 210" width="300" role="img" aria-label="Bar chart">';
+    for (var v = 0; v <= top; v += step) {
+      if (top / step > 10 && (v / step) % 2) continue;
+      var y = base - v / top * H;
+      s += '<line x1="' + left + '" y1="' + y + '" x2="295" y2="' + y + '" stroke="#D5DBE8" stroke-width="1"/><text x="' + (left - 6) + '" y="' + (y + 5) + '" font-size="14" text-anchor="end" fill="#1B2440">' + v + '</text>';
+    }
+    labels.forEach(function (l, i) {
+      var x = left + 10 + i * 62, h = vals[i] / top * H;
+      s += '<rect x="' + x + '" y="' + (base - h) + '" width="40" height="' + h + '" fill="#1F6FEB"/><text x="' + (x + 20) + '" y="198" font-size="14" text-anchor="middle" fill="#1B2440">' + l + '</text>';
+    });
+    return s + '<line x1="' + left + '" y1="' + base + '" x2="295" y2="' + base + '" stroke="#1B2440" stroke-width="2"/></svg>';
+  }
+  function svgPict(labels, counts, per) {
+    var s = '<svg viewBox="0 0 300 200" width="300" role="img" aria-label="Pictogram">';
+    labels.forEach(function (l, i) {
+      var y = 26 + i * 38;
+      s += '<text x="8" y="' + (y + 5) + '" font-size="15" fill="#1B2440">' + l + '</text>';
+      for (var k = 0; k < Math.floor(counts[i]); k++) s += '<circle cx="' + (70 + k * 34) + '" cy="' + y + '" r="13" fill="#FFC43D" stroke="#B88400" stroke-width="1.5"/>';
+      if (counts[i] % 1) { var cx = 70 + Math.floor(counts[i]) * 34; s += '<path d="M' + cx + ' ' + (y - 13) + ' A13 13 0 0 0 ' + cx + ' ' + (y + 13) + ' Z" fill="#FFC43D" stroke="#B88400" stroke-width="1.5"/>'; }
+    });
+    return s + '<circle cx="80" cy="182" r="10" fill="#FFC43D" stroke="#B88400" stroke-width="1.5"/><text x="98" y="187" font-size="14" fill="#1B2440">= ' + per + ' cars</text></svg>';
+  }
+  function svgFrac(n, k) {
+    var w = 260 / n, s = '<svg viewBox="0 0 300 90" width="300" role="img" aria-label="A shape cut into equal parts">';
+    for (var i = 0; i < n; i++) s += '<rect x="' + (20 + i * w) + '" y="15" width="' + w + '" height="60" fill="' + (i < k ? '#1F6FEB' : '#FFFFFF') + '" stroke="#1B2440" stroke-width="2"/>';
+    return s + '</svg>';
+  }
+  function svgAngle(deg) {
+    var cx = 90, cy = 150, L = 130, rad = deg * Math.PI / 180, x2 = cx + L * Math.cos(rad), y2 = cy - L * Math.sin(rad);
+    var s = '<svg viewBox="0 0 300 170" width="300" role="img" aria-label="An angle">';
+    s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + 180) + '" y2="' + cy + '" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
+    s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#1B2440" stroke-width="4" stroke-linecap="round"/>';
+    if (deg === 90) s += '<path d="M' + (cx + 22) + ' ' + cy + ' V' + (cy - 22) + ' H' + cx + '" fill="none" stroke="#D62839" stroke-width="3"/>';
+    else s += '<path d="M' + (cx + 44) + ' ' + cy + ' A44 44 0 0 0 ' + (cx + 44 * Math.cos(rad)).toFixed(1) + ' ' + (cy - 44 * Math.sin(rad)).toFixed(1) + '" fill="none" stroke="#D62839" stroke-width="3"/>';
+    return s + '</svg>';
+  }
+  function svgCoord(px, py) {
+    var g = 36, ox = 40, oy = 220, s = '<svg viewBox="0 0 300 250" width="300" role="img" aria-label="A coordinate grid with a star">';
+    for (var i = 0; i <= 6; i++) {
+      s += '<line x1="' + (ox + i * g) + '" y1="' + (oy - 6 * g + 6) + '" x2="' + (ox + i * g) + '" y2="' + oy + '" stroke="#D5DBE8" stroke-width="1.5"/>';
+      s += '<text x="' + (ox + i * g) + '" y="' + (oy + 20) + '" font-size="14" text-anchor="middle" fill="#1B2440">' + i + '</text>';
+    }
+    for (var j = 0; j <= 5; j++) {
+      s += '<line x1="' + ox + '" y1="' + (oy - j * g) + '" x2="' + (ox + 6 * g) + '" y2="' + (oy - j * g) + '" stroke="#D5DBE8" stroke-width="1.5"/>';
+      s += '<text x="' + (ox - 12) + '" y="' + (oy - j * g + 5) + '" font-size="14" text-anchor="middle" fill="#1B2440">' + j + '</text>';
+    }
+    s += '<line x1="' + ox + '" y1="' + oy + '" x2="' + (ox + 6 * g) + '" y2="' + oy + '" stroke="#1B2440" stroke-width="2"/><line x1="' + ox + '" y1="' + oy + '" x2="' + ox + '" y2="' + (oy - 5 * g - 10) + '" stroke="#1B2440" stroke-width="2"/>';
+    var x = ox + px * g, y = oy - py * g, pts = [];
+    for (var k = 0; k < 10; k++) { var r = k % 2 ? 6 : 14, a = -Math.PI / 2 + k * Math.PI / 5; pts.push((x + r * Math.cos(a)).toFixed(1) + ',' + (y + r * Math.sin(a)).toFixed(1)); }
+    return s + '<polygon points="' + pts.join(' ') + '" fill="#FFC43D" stroke="#B88400" stroke-width="1.5"/></svg>';
+  }
 
   /* ---------- Essa, Cambridge Stage 1 ---------- */
   var ICONS = ['car', 'ball', 'star'];
@@ -285,7 +473,8 @@
   };
 
   var DEFAULT_PRACTICE = {
-    musa: ['pv', 'round', 'compare', 'neg', 'factor', 'multiple', 'divis', 'timeconv', 't24', 'clock', 'perim', 'area', 'add3', 'sub3', 'mul10', 'div10', 'tables', 'mul1', 'div1', 'seq', 'square'],
+    musa: ['pv', 'round', 'compare', 'neg', 'factor', 'multiple', 'divis', 'timeconv', 't24', 'clock', 'perim', 'area', 'add3', 'sub3', 'mul10', 'div10', 'tables', 'mul1', 'div1', 'seq', 'square',
+      'tally', 'barchart', 'pictogram', 'venn', 'mode', 'statcycle', 'fracshade', 'fraccmp', 'fracequiv', 'percent', 'fracof', 'fracadd', 'angle', 'compass', 'coord', 'prob'],
     essa: ['add20', 'cross', 'cross', 'teen', 'missing', 'missub', 'bonds20', 'add2d', 'sub2d', 'tens100', 'doubles', 'three', 'story', 'story', 'skip', 'placevalue', 'compare', 'groups', 'clock']
   };
 
