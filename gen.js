@@ -29,7 +29,7 @@
       wrongs.forEach(function (w) { w = String(w); if (!seen[w] && list.length < 4) { seen[w] = 1; list.push(w); } });
       return shuffle(list);
     };
-    return { ri: ri, pick: pick, shuffle: shuffle, opts: opts };
+    return { ri: ri, pick: pick, shuffle: shuffle, opts: opts, r: r };
   }
 
   /* ---------- Musa, Cambridge Stage 4 ---------- */
@@ -191,6 +191,92 @@
       return { ch: 13, lesson: 'A', t: 'mc', q: 'What time is it?', vis: { type: 'clock', h: h, m: half ? 30 : 0 }, a: lab(h, half),
         o: m.opts(lab(h, half), [lab(h, !half), lab(h % 12 + 1, half), lab(h === 1 ? 12 : h - 1, half)]), hint: 'The short hand shows the hour.' };
     },
+    /* ---- harder topics (added 18 Oct 2026: Essa found the first ones too easy) ---- */
+    add2d: function (m) {
+      if (m.r() < 0.4) {
+        var t1 = m.ri(1, 6), t2 = m.ri(1, 9 - t1);
+        return { ch: 16, lesson: 'A', t: 'num', q: (t1 * 10) + ' + ' + (t2 * 10) + ' = ?', a: String((t1 + t2) * 10),
+          hint: t1 + ' tens add ' + t2 + ' tens makes ' + (t1 + t2) + ' tens.' };
+      }
+      var tens = m.ri(1, 8), ones = m.ri(0, 7), b = m.ri(2, 9 - ones), a = tens * 10 + ones;
+      return { ch: 16, lesson: 'A', t: 'num', q: a + ' + ' + b + ' = ?', a: String(a + b),
+        hint: 'Keep the ' + tens + ' tens. Add the ones: ' + ones + ' + ' + b + ' = ' + (ones + b) + '.' };
+    },
+    sub2d: function (m) {
+      if (m.r() < 0.4) {
+        var t1 = m.ri(3, 9), t2 = m.ri(1, t1 - 1);
+        return { ch: 16, lesson: 'A', t: 'num', q: (t1 * 10) + ' ' + MINUS + ' ' + (t2 * 10) + ' = ?', a: String((t1 - t2) * 10),
+          hint: t1 + ' tens take away ' + t2 + ' tens leaves ' + (t1 - t2) + ' tens.' };
+      }
+      var tens = m.ri(2, 9), ones = m.ri(3, 9), b = m.ri(2, ones), a = tens * 10 + ones;
+      return { ch: 16, lesson: 'A', t: 'num', q: a + ' ' + MINUS + ' ' + b + ' = ?', a: String(a - b),
+        hint: 'Keep the ' + tens + ' tens. Take away from the ones: ' + ones + ' ' + MINUS + ' ' + b + ' = ' + (ones - b) + '.' };
+    },
+    bonds20: function (m) {
+      var b = m.ri(3, 17), left = m.r() < 0.5;
+      return { ch: 10, lesson: 'A', t: 'num', q: left ? '□ + ' + b + ' = 20' : b + ' + □ = 20', say: (left ? 'What number add ' + b : b + ' add what number') + ' makes 20?',
+        a: String(20 - b), hint: b > 10 ? 'Count on from ' + b + ' to 20.' : b + ' and ' + (10 - b) + ' make 10. Then 10 more makes 20.' };
+    },
+    tens100: function (m) {
+      var t = m.ri(1, 9) * 10;
+      return { ch: 16, lesson: 'A', t: 'num', q: t + ' + □ = 100', say: t + ' add what number makes 100?', a: String(100 - t),
+        hint: 'Count on in tens from ' + t + ' to 100.' };
+    },
+    doubles: function (m) {
+      if (m.r() < 0.5) {
+        var n = m.ri(3, 10);
+        return { ch: 5, lesson: 'A', t: 'num', q: 'Double ' + n + ' = ?', say: 'What is double ' + n + '?', a: String(2 * n), hint: 'Double means add it to itself: ' + n + ' + ' + n + '.' };
+      }
+      var h = m.ri(2, 10);
+      return { ch: 7, lesson: 'A', t: 'num', q: 'Half of ' + (2 * h) + ' = ?', say: 'What is half of ' + (2 * h) + '?', a: String(h), hint: 'Share ' + (2 * h) + ' into 2 equal groups.' };
+    },
+    three: function (m) {
+      var a, b, c;
+      do { a = m.ri(2, 9); b = m.ri(2, 9); c = m.ri(2, 9); } while (a + b + c > 20 || a + b + c < 11);
+      return { ch: 5, lesson: 'A', t: 'num', q: a + ' + ' + b + ' + ' + c + ' = ?', a: String(a + b + c),
+        hint: 'Add two first: ' + a + ' + ' + b + ' = ' + (a + b) + '. Then add ' + c + '.' };
+    },
+    story: function (m) {
+      var k = m.ri(0, 5), x, y;
+      if (k === 0) { x = m.ri(5, 12); y = m.ri(3, 8); return { ch: 5, lesson: 'A', t: 'num', q: 'Musa has ' + x + ' cars. Essa gives him ' + y + ' more. How many cars does Musa have now?', a: String(x + y), hint: 'More means add: ' + x + ' + ' + y + '.' }; }
+      if (k === 1) { x = m.ri(11, 19); y = m.ri(3, 9); return { ch: 7, lesson: 'A', t: 'num', q: 'There are ' + x + ' birds on a tree. ' + y + ' fly away. How many birds are left?', a: String(x - y), hint: 'Fly away means take away: ' + x + ' ' + MINUS + ' ' + y + '.' }; }
+      if (k === 2) { x = m.ri(6, 12); y = m.ri(4, 8); return { ch: 5, lesson: 'A', t: 'num', q: 'A bus has ' + x + ' people. ' + y + ' more get on. How many people are on the bus now?', a: String(x + y), hint: 'Get on means add: ' + x + ' + ' + y + '.' }; }
+      if (k === 3) { x = m.ri(10, 20); y = m.ri(2, 9); return { ch: 12, lesson: 'A', t: 'num', q: 'You have RM' + x + '. You spend RM' + y + '. How much money is left?', say: 'You have ' + x + ' ringgit. You spend ' + y + ' ringgit. How much money is left?', a: String(x - y), hint: 'Spend means take away: ' + x + ' ' + MINUS + ' ' + y + '.' }; }
+      if (k === 4) { x = m.ri(4, 9); y = m.ri(2, 6); return { ch: 5, lesson: 'A', t: 'num', q: 'Essa has ' + x + ' sweets. Musa has ' + y + ' more than Essa. How many sweets does Musa have?', a: String(x + y), hint: 'More than Essa means add: ' + x + ' + ' + y + '.' }; }
+      x = m.ri(12, 20); y = m.ri(4, 9);
+      return { ch: 7, lesson: 'A', t: 'num', q: 'There are ' + x + ' cars in a race. ' + y + ' cars stop for a pit stop. How many cars are still racing?', a: String(x - y), hint: 'Stop means take them away: ' + x + ' ' + MINUS + ' ' + y + '.' };
+    },
+    missub: function (m) {
+      var b = m.ri(3, 9), c = m.ri(3, 11);
+      return { ch: 10, lesson: 'A', t: 'num', q: '□ ' + MINUS + ' ' + b + ' = ' + c, say: 'What number take away ' + b + ' leaves ' + c + '?', a: String(b + c),
+        hint: 'Work backwards: add them. ' + c + ' + ' + b + ' = ?' };
+    },
+    skip: function (m) {
+      var kind = m.ri(0, 3), t, step;
+      if (kind === 0) { step = 5; var s0 = m.ri(1, 12) * 5; t = [s0, s0 + 5, s0 + 10, s0 + 15]; }
+      else if (kind === 1) { step = -2; var s1 = m.ri(6, 10) * 2; t = [s1, s1 - 2, s1 - 4, s1 - 6]; }
+      else if (kind === 2) { step = -10; var s2 = m.ri(6, 10) * 10; t = [s2, s2 - 10, s2 - 20, s2 - 30]; }
+      else { step = 10; var s3 = m.ri(1, 5) * 10 + m.ri(1, 9); t = [s3, s3 + 10, s3 + 20, s3 + 30]; }
+      var nxt = t[3] + step;
+      return { ch: 14, lesson: 'A', t: 'num', q: 'What comes next?  ' + t.join(', ') + ', □', say: 'What comes next? ' + t.join(', '), a: String(nxt),
+        hint: step > 0 ? 'Each number goes up by ' + step + '.' : 'Each number goes down by ' + (-step) + '.' };
+    },
+    placevalue: function (m) {
+      var tens = m.ri(2, 9), ones = m.ri(1, 9), n = tens * 10 + ones;
+      if (m.r() < 0.5) return { ch: 16, lesson: 'A', t: 'num', q: tens + ' tens and ' + ones + ' ones make what number?', a: String(n), hint: tens + ' tens is ' + (tens * 10) + '. Add ' + ones + ' more.' };
+      return { ch: 16, lesson: 'A', t: 'mc', q: 'How many tens are in ' + n + '?', o: m.opts(String(tens), [String(ones), String(n), String(tens * 10)]), a: String(tens), hint: 'The first digit tells you the tens.' };
+    },
+    compare: function (m) {
+      var a, b, c, d;
+      do { a = m.ri(3, 10); b = m.ri(3, 10); c = m.ri(3, 10); d = m.ri(3, 10); } while (a + b === c + d || a + b > 20 || c + d > 20);
+      var l = a + ' + ' + b, r2 = c + ' + ' + d;
+      return { ch: 2, lesson: 'A', t: 'mc', q: 'Which is more?', o: [l, r2], a: a + b > c + d ? l : r2, hint: 'Work out each one: ' + l + ' = ' + (a + b) + ' and ' + r2 + ' = ' + (c + d) + '.' };
+    },
+    groups: function (m) {
+      var g = m.ri(2, 4), each = m.ri(3, 5), icon = m.pick(ICONS);
+      return { ch: 5, lesson: 'A', t: 'num', q: g + ' groups of ' + each + ' ' + icon + 's. How many ' + icon + 's altogether?', vis: { type: 'dots', n: g * each, icon: icon }, a: String(g * each),
+        hint: 'Count in ' + each + 's: ' + [1, 2, 3, 4].slice(0, g).map(function (i) { return i * each; }).join(', ') + '.' };
+    },
     pattern: function (m) {
       var step = m.pick([1, 2, 5, 10]), start = step === 10 ? 10 : m.ri(1, 6) * (step === 5 ? 5 : 1);
       var t = [start, start + step, start + 2 * step, start + 3 * step];
@@ -200,7 +286,7 @@
 
   var DEFAULT_PRACTICE = {
     musa: ['pv', 'round', 'compare', 'neg', 'factor', 'multiple', 'divis', 'timeconv', 't24', 'clock', 'perim', 'area', 'add3', 'sub3', 'mul10', 'div10', 'tables', 'mul1', 'div1', 'seq', 'square'],
-    essa: ['count', 'after', 'before', 'bigger', 'bonds', 'add10', 'add20', 'sub10', 'sub20', 'cross', 'cross', 'teen', 'missing', 'clock', 'pattern']
+    essa: ['add20', 'cross', 'cross', 'teen', 'missing', 'missub', 'bonds20', 'add2d', 'sub2d', 'tens100', 'doubles', 'three', 'story', 'story', 'skip', 'placevalue', 'compare', 'groups', 'clock']
   };
 
   function makeRace(child, seed, count, practice) {
