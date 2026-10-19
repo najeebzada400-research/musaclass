@@ -264,7 +264,7 @@
   function car(w, dark, name, forChild) {
     var who = forChild || child;
     if (who === 'musa') return silverCar(w, dark, name, who);
-    if (who === 'essa') return orangeSuv(w, dark, name, who);
+    if (who === 'essa') return orangeSuper(w, dark, name, who);
     var tyre = dark ? '#0B1226' : '#1B2440';
     var paint = (who === child && L.paint[child] === 'blue' && has('blue')) ? '#1F6FEB' : '#D62839';
     var mine = who === child;
@@ -282,8 +282,8 @@
       '<circle cx="94" cy="42" r="10" fill="' + tyre + '"/><circle cx="94" cy="42" r="' + hubR + '" fill="' + hub + '"/></svg>';
     return s;
   }
-  /* Essa's car: an original orange sporty SUV (no real make, badge or light design) */
-  function orangeSuv(w, dark, name, who) {
+  /* Essa's car: an original low orange supercar (no real make, badge or light design) */
+  function orangeSuper(w, dark, name, who) {
     var tyre = dark ? '#0B1226' : '#1B2440';
     var mine = who === child;
     var blue = mine && L.paint[child] === 'blue' && has('blue');
@@ -291,16 +291,18 @@
     var gold = mine && has('gold'), spoiler = mine && has('spoiler'), stripes = mine && has('stripes');
     var hub = gold ? '#FFD84D' : '#5B6270', hubR = gold ? 6 : 5;
     var s = '<svg viewBox="0 0 120 56" width="' + w + '" height="' + Math.round(w * 0.467) + '" aria-hidden="true" class="car">';
-    if (spoiler) s += '<rect x="0" y="12" width="22" height="5" rx="2" fill="' + tyre + '"/><rect x="8" y="16" width="4" height="12" fill="' + tyre + '"/>';
-    s += '<path d="M4 41 L5 30 C6 27 9 26 14 25 L28 22 C37 15 46 11 56 10.5 L82 11 C88 11.5 92 14 95 18 L100 24 L112 27 C116 28 118 31 118 35 L118 41 Z" fill="' + paint + '" stroke="' + shade + '" stroke-width="1.2" stroke-linejoin="round"/>';
-    s += '<path d="M34 23 C40 17.5 46 14.5 54 14 L62 14 L62 23 Z" fill="#BFE3FF"/><path d="M65 14 L82 14 C86 14 89 15.5 91 18 L94.5 23 L65 23 Z" fill="#BFE3FF"/><path d="M14 30 L112 30" stroke="' + shade + '" stroke-width="1.2"/>';
-    s += '<path d="M4 36 L118 36 L118 41 L4 41 Z" fill="' + trim + '"/>';
-    if (stripes) s += '<path d="M8 32 L114 32 L114 34 L8 34 Z" fill="#FFFFFF"/>';
-    s += '<path d="M107 29.5 L116 31.5 L116 33 L106 31.5 Z" fill="#FFF4D6"/><path d="M4.5 29 L9 28.5 L9 31 L4.5 31.5 Z" fill="#D62839"/>';
-    s += '<path d="M14 41 L14 38 A14 13 0 0 1 42 38 L42 41 Z" fill="' + trim + '"/><path d="M80 41 L80 38 A14 13 0 0 1 108 38 L108 41 Z" fill="' + trim + '"/>';
-    if (name) s += '<text x="62" y="29" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="9" fill="#FFFFFF" letter-spacing="0.6">' + esc(name) + '</text>';
-    s += '<circle cx="28" cy="42.5" r="11.5" fill="' + tyre + '"/><circle cx="28" cy="42.5" r="' + (hubR + 1) + '" fill="' + hub + '"/>' +
-      '<circle cx="94" cy="42.5" r="11.5" fill="' + tyre + '"/><circle cx="94" cy="42.5" r="' + (hubR + 1) + '" fill="' + hub + '"/></svg>';
+    if (spoiler) s += '<rect x="0" y="17" width="22" height="4" rx="2" fill="' + tyre + '"/><rect x="9" y="20" width="4" height="10" fill="' + tyre + '"/>';
+    s += '<path d="M3 41 L4 33 C6 30 10 29 16 28.5 L34 27 C40 20 48 15.5 58 15 C66 14.8 72 16 78 20 L90 26 C100 27.5 110 30 115 33 C118 35 119 38 119 41 Z" fill="' + paint + '" stroke="' + shade + '" stroke-width="1.2" stroke-linejoin="round"/>';
+    s += '<path d="M42 26 C47 19.5 54 16.5 60 16.5 C67 16.5 72 18.5 77 21.5 L84 26 C70 24.5 54 24.5 42 26 Z" fill="' + trim + '"/>';
+    s += '<path d="M50 24.5 C54 20 58 18.3 62 18.3 C66.5 18.3 70.5 19.8 74 22.2 L78 24.5 C68 23.5 58 23.6 50 24.5 Z" fill="#BFE3FF"/>';
+    s += '<path d="M28 35 C32 31 38 29.5 46 29.8 L43 35.5 Z" fill="' + trim + '"/>';
+    s += '<path d="M3 33.5 L11 30 L13 31.2 L4 35 Z" fill="' + trim + '"/><path d="M99 40 L119 40 L119 42 L97 42 Z" fill="' + trim + '"/>';
+    if (stripes) s += '<path d="M50 38 L118 38 L118 39.6 L48 39.6 Z" fill="#FFFFFF"/>';
+    s += '<path d="M108 31 L115.5 32.8 L115 34.2 L107 32.6 Z" fill="#FFF4D6"/><path d="M4 31 L8 30 L8 32 L4 33 Z" fill="#D62839"/>';
+    s += '<path d="M17 41 A11 11 0 0 1 39 41 Z" fill="' + shade + '"/><path d="M83 41 A11 11 0 0 1 105 41 Z" fill="' + shade + '"/>';
+    if (name) s += '<text x="68" y="35" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="9" fill="#FFFFFF" letter-spacing="0.6">' + esc(name) + '</text>';
+    s += '<circle cx="28" cy="43" r="10" fill="' + tyre + '"/><circle cx="28" cy="43" r="' + hubR + '" fill="' + hub + '"/>' +
+      '<circle cx="94" cy="43" r="10" fill="' + tyre + '"/><circle cx="94" cy="43" r="' + hubR + '" fill="' + hub + '"/></svg>';
     return s;
   }
   /* Musa's car: an original long, low silver endurance racer (no real make, badge or number) */
