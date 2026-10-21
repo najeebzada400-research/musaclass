@@ -320,7 +320,7 @@
     h += '<div class="section-title">Today’s garden</div><div class="garden">';
     for (var j = 0; j < n; j++) {
       var st = d[j] ? 'done' : (j === next ? 'next' : 'seed');
-      h += '<button class="plot ' + st + '" data-set="' + j + '" aria-label="Set ' + (j + 1) + (d[j] ? ', done' : '') + '">' + plotSVG(st, j) + '<b>Set ' + (j + 1) + '</b><span>' + (d[j] ? (sc[j] || 'Bloomed') : (j === next ? 'Start' : '10 questions')) + '</span></button>';
+      h += '<button class="plot ' + st + '" data-set="' + j + '" aria-label="Set ' + (j + 1) + (d[j] ? ', done' : '') + '">' + plotSVG(st, j) + '<b>Set ' + (j + 1) + '</b><span>' + (d[j] ? (sc[j] || 'Bloomed') : (j === next ? 'Start' : ((plan.races[j] && plan.races[j].questions ? plan.races[j].questions.length : qps()) + ' questions'))) + '</span></button>';
     }
     h += '</div>';
     if (next >= 0) h += '<button class="big-btn" data-set="' + next + '">Start set ' + (next + 1) + '</button>';
