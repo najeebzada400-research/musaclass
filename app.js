@@ -233,9 +233,29 @@
     return fetch(API + '?action=plan&child=' + c + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(hydrate);
   }
   /* a plan may keep its races in a file next to the site (races_src), so the Drive plan stays small */
+  /* a sequential programme stays on this device until it is finished or its end date passes,
+     even if a newer daily plan arrives from the planner */
+  function keepProgramme(res) {
+    try {
+      var p = res && res.plan, c = child; if (!p || !c) return res;
+      L.prog = L.prog || {};
+      var today = new Date(); today = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
+      if (p.sequential && p.races && p.races.length) { L.prog[c] = p; save(); return res; }
+      var g = L.prog[c];
+      if (!g || !g.races || (g.programme_until && g.programme_until < today)) return res;
+      var done = (L.done[c] || {})[g.plan_id] || [], n = Math.max(g.total_races || 0, g.races.length), left = 0;
+      for (var i = 0; i < n; i++) if (done.indexOf(i) < 0) left++;
+      if (!left) return res;
+      res.plan = g; if (res.stats) res.stats.done = [];
+    } catch (e) {}
+    return res;
+  }
   function hydrate(res) {
+    return hydrate0(res).then(keepProgramme);
+  }
+  function hydrate0(res) {
     var p = res && res.plan;
-    if (!p || !p.races_src || (p.races && p.races.length) || !/^[\w\/.-]+\.json$/.test(p.races_src) || /\.\./.test(p.races_src)) return res;
+    if (!p || !p.races_src || (p.races && p.races.length) || !/^[\w\/.-]+\.json$/.test(p.races_src) || /\.\./.test(p.races_src)) return Promise.resolve(res);
     return fetch(p.races_src + '?v=' + encodeURIComponent(p.plan_id || ''), { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) {
       p.races = (j && j.races) || [];
       return res;
