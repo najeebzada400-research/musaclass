@@ -497,7 +497,7 @@
   function renderHome() {
     var d = doneMap(), n = totalRaces(), todayDone = !!d[0], allDone = true;
     for (var i = 0; i < n; i++) if (!d[i]) allDone = false;
-    var seq = !!plan.sequential && !isEssa(), nextIdx = -1;
+    var seq = !!plan.sequential, nextIdx = -1;
     if (seq) { for (var si = 0; si < n; si++) if (!d[si]) { nextIdx = si; break; } }
     var trophies = 0;
     if (plan.map) Object.keys(plan.map).forEach(function (k) { if (plan.map[k] === 'mastered') trophies++; });
