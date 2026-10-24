@@ -230,7 +230,16 @@
 
   /* ---------- server ---------- */
   function apiGet(c) {
-    return fetch(API + '?action=plan&child=' + c + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); });
+    return fetch(API + '?action=plan&child=' + c + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(hydrate);
+  }
+  /* a plan may keep its races in a file next to the site (races_src), so the Drive plan stays small */
+  function hydrate(res) {
+    var p = res && res.plan;
+    if (!p || !p.races_src || (p.races && p.races.length) || !/^[\w\/.-]+\.json$/.test(p.races_src) || /\.\./.test(p.races_src)) return res;
+    return fetch(p.races_src + '?v=' + encodeURIComponent(p.plan_id || ''), { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) {
+      p.races = (j && j.races) || [];
+      return res;
+    }).catch(function () { p.races = p.races || []; return res; });
   }
   function apiPost(body) { return fetch(API, { method: 'POST', body: JSON.stringify(body) }).then(function (r) { return r.json(); }); }
   function flushQueue() {
@@ -468,6 +477,8 @@
   function renderHome() {
     var d = doneMap(), n = totalRaces(), todayDone = !!d[0], allDone = true;
     for (var i = 0; i < n; i++) if (!d[i]) allDone = false;
+    var seq = !!plan.sequential && !isEssa(), nextIdx = -1;
+    if (seq) { for (var si = 0; si < n; si++) if (!d[si]) { nextIdx = si; break; } }
     var trophies = 0;
     if (plan.map) Object.keys(plan.map).forEach(function (k) { if (plan.map[k] === 'mastered') trophies++; });
     var phaseTag = plan.phase === 'checkup' ? 'QUALIFYING' : 'GRAND PRIX';
@@ -478,12 +489,21 @@
       '<div class="stat"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" fill="#FFC43D" stroke="#B88400" stroke-width="1.2"/><path d="M7 5 H4 A3 3 0 0 0 7 10 M17 5 H20 A3 3 0 0 1 17 10" fill="none" stroke="#B88400" stroke-width="1.5"/><path d="M12 14 V18 M8 21 H16" stroke="#B88400" stroke-width="2" stroke-linecap="round"/></svg><div><b>' + trophies + '</b><span>trophies</span></div></div></div>';
     var title = allDone ? 'All 20 races done!' : (todayDone ? 'Today’s race done!' : esc(plan.headline || 'Today’s race is ready!'));
     var msg = allDone ? 'Amazing driving. Keep racing for even more laps!' : (todayDone ? 'Great driving. More races are open if you want them.' : esc(plan.message || 'Just do your best.'));
+    if (seq) { title = allDone ? 'All races done!' : 'Next: ' + esc((plan.races[nextIdx] || {}).title || ('Race ' + (nextIdx + 1))); msg = allDone ? 'Amazing driving. Keep racing for even more laps!' : esc(plan.message || 'Just do your best.'); }
     h += '<section class="today"><div class="today-row"><div style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 260px"><span class="tag">' + phaseTag + ' · DAY ' + (plan.day || 1) + '</span>' +
       '<h2 class="display">' + title + '</h2><p>' + msg + '</p></div>' +
-      (todayDone ? '' : '<button class="go-btn" data-race="0" style="margin-top:12px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 4 L20 12 L7 20 Z" fill="#1B2440"/></svg>' + (isEssa() ? 'Go!' : 'Start engine') + '</button>') +
+      ((seq ? allDone : todayDone) ? '' : '<button class="go-btn" data-race="' + (seq ? nextIdx : 0) + '" style="margin-top:12px"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 4 L20 12 L7 20 Z" fill="#1B2440"/></svg>' + (isEssa() ? 'Go!' : 'Start engine') + '</button>') +
       '</div><div class="road"><div class="tarmac"></div><div class="dash"></div>' + car(140, true, isEssa() ? 'ESSA' : '') + '<div class="pole"></div><div class="flag"></div></div></section>';
     if (allDone) h += '<button class="go-btn keep" data-go="keep">Keep racing</button>';
     if (plan.show_lesson_picker && !isEssa()) h += renderStudied();
+    if (seq) {
+      h += '<section class="sec"><div class="sec-head"><h3 class="display">Your races</h3><span>One after another. Each one opens the next.</span></div><div class="bonus">';
+      for (var sb = 0; sb < n; sb++) {
+        var sdone = !!d[sb], snext = sb === nextIdx, slab = sdone ? 'Done' : (snext ? 'Next' : 'Locked');
+        h += '<button class="' + (sdone ? 'done' : (snext ? '' : 'locked')) + '"' + (snext ? ' data-race="' + sb + '"' : ' disabled') + ' aria-label="Race ' + (sb + 1) + ' ' + slab + '">' + (sdone ? star(26) : (snext ? flagIcon() : lockIcon())) + '<b>' + (sb + 1) + '</b><small>' + slab + '</small></button>';
+      }
+      h += '</div></section>';
+    } else {
     h += '<section class="sec"><div class="sec-head"><h3 class="display">More races</h3><span>' + (todayDone ? 'Feeling fast? Pick a race!' : 'Finish today’s race to open them') + '</span></div><div class="bonus">';
     for (var b = 1; b < n; b++) {
       var cls = !todayDone ? 'locked' : (d[b] ? 'done' : '');
@@ -491,6 +511,7 @@
       h += '<button class="' + cls + '"' + (todayDone && !d[b] ? ' data-race="' + b + '"' : ' disabled') + ' aria-label="Race ' + (b + 1) + ' ' + lab + '">' + (todayDone ? (d[b] ? star(26) : flagIcon()) : lockIcon()) + '<b>' + (b + 1) + '</b><small>' + lab + '</small></button>';
     }
     h += '</div></section>';
+    }
     h += '<section class="sec"><div class="sec-head"><h3 class="display">' + (isEssa() ? 'Number road' : 'Grand Prix map') + '</h3><span>' + (isEssa() ? 'Every stop is something to learn' : 'Every chapter is a checkpoint') + '</span></div><div class="map">';
     for (var row = 0; row < 2; row++) {
       h += '<div class="map-row">';
@@ -549,6 +570,7 @@
     var qs = raceObj.questions, q = qs[qi], total = qs.length;
     var pct = (qi / total) * 100;
     var label = race >= 100 ? 'Keep racing' : (race === 0 ? (plan.phase === 'checkup' ? 'Qualifying race' : 'Today’s race') : 'Race ' + (race + 1));
+    if (plan.sequential && race < 100 && raceObj.title) label = esc(raceObj.title);
     var h = '<div class="race-top"><button class="icon-btn" data-go="home"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5 L8 12 L15 19" stroke="#1B2440" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Garage</button>' +
       '<div class="display">' + label + '</div><button class="icon-btn" data-go="mute" aria-label="' + (L.mute ? 'Turn sound on' : 'Turn sound off') + '">' + (L.mute ? muteIcon() : speakerIcon()) + '</button></div>';
     h += '<div class="track"><div class="dash"></div><div class="pole"></div><div class="flag"></div><div id="carwrap" style="left:calc(8px + ' + pct + '% * 0.74)">' + car(104, true, isEssa() ? 'ESSA' : '') + '</div></div>';
